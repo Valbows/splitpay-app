@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SplitPay Frontend Structure
 
 ```
@@ -153,3 +154,6 @@ frontend/
    ```bash
    npm run build
    ``` 
+=======
+# splitpay-app
+>>>>>>> aa089389bfcfe62554826ca145c48f3ee72c8267
