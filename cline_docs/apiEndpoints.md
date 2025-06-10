@@ -1,4 +1,4 @@
-          # API Endpoints: SplitPay APP Backend
+# API Endpoints: SplitPay APP Backend
 
 This document details the API endpoints implemented in the SplitPay APP backend, aligning with the project's documentation requirements.
 
@@ -333,9 +333,8 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```
 *   **Response Body (Success 201):**
     ```json
-    [
-      {
-        "id": "uuid",
+    {
+      "id": "uuid",
         "group_id": "uuid",
         "user_id": "uuid",
         "created_at": "timestamp"
