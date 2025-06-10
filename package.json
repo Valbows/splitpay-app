@@ -1,40 +1,20 @@
 {
-  "name": "splitpay-frontend",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
+  "name": "splitpay-app",
+  "version": "1.0.0",
+  "description": "A modern expense splitting application that makes it easy to manage shared expenses and settle up with friends.",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@types/node": "^20.11.24",
-    "@types/react": "^18.2.56",
-    "@types/react-dom": "^18.2.19",
-    "axios": "^1.6.7",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.513.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.2",
-    "tailwind-merge": "^3.3.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Valbows/splitpay-app.git"
   },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.0.2",
-    "@typescript-eslint/parser": "^7.0.2",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "postcss": "^8.5.4",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.2.2",
-    "vite": "^5.1.4"
-  }
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Valbows/splitpay-app/issues"
+  },
+  "homepage": "https://github.com/Valbows/splitpay-app#readme"
 }
