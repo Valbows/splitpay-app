@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from '../config/database';
+import upload from '../utils/upload';
 
 const router = express.Router();
 
@@ -48,6 +49,31 @@ router.post('/', async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error creating user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/users/:id/avatar - Upload user avatar
+router.post('/:id/avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded.' });
+    }
+    const avatarUrl = `/uploads/${req.file.filename}`;
+
+    const result = await pool.query(
+      'UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2 RETURNING id, name, email, avatar_url, created_at',
+      [avatarUrl, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

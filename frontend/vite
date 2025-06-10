@@ -1,0 +1,34 @@
+
+
+  VITE v5.4.19  ready in 116 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+[Failed to load PostCSS config: Failed to load PostCSS config (searchPath: /Users/pursuit/Desktop/splitpay-app/fr
+[Failed to load PostCSS config: Failed to load PostCSS config (searchPath: /Users/pursuit/Desktop/splitpay-app/frontend): [Error] Loading PostCSS Plugin failed: Cannot find module 'tailwindcss'
+Require stack:
+- /Users/pursuit/Desktop/splitpay-app/postcss.config.js
+
+(@/Users/pursuit/Desktop/splitpay-app/postcss.config.js)
+Error: Loading PostCSS Plugin failed: Cannot find module 'tailwindcss'
+Require stack:
+- /Users/pursuit/Desktop/splitpay-app/postcss.config.js
+
+(@/Users/pursuit/Desktop/splitpay-app/postcss.config.js)
+    at load (file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.
+    at load (file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33632:11)
+    at file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:336
+    at file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33657:16
+    at Array.map (<anonymous>)
+    at plugins (file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJd
+    at plugins (file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33656:8)
+    at processResult (file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-
+    at processResult (file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33726:14)
+    at file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:338
+    at file:///Users/pursuit/Desktop/splitpay-app/frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33856:14]
+

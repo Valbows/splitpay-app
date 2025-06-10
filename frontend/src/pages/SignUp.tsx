@@ -9,6 +9,7 @@ import {
   Link,
   InputAdornment,
   useTheme,
+  Avatar,
 } from '@mui/material'
 import {
   Google as GoogleIcon,
@@ -17,8 +18,10 @@ import {
   Visibility,
   VisibilityOff,
   ArrowBack,
+  AddAPhoto,
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
+import api from '../services/api'
 
 const SignUp: React.FC = () => {
   const theme = useTheme()
@@ -28,9 +31,11 @@ const SignUp: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    avatar: null as File | null,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -39,12 +44,34 @@ const SignUp: React.FC = () => {
     }))
   }
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setFormData(prev => ({
+      ...prev,
+      avatar: file,
+    }))
+    if (file) {
+      setAvatarPreview(URL.createObjectURL(file))
+    } else {
+      setAvatarPreview(null)
+    }
+  }
+
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     // TODO: Implement actual sign-up logic
     console.log('Sign up with:', formData)
-    // For now, navigate to dashboard
-    navigate('/dashboard')
+
+    try {
+      const newUser = await api.users.create({ name: formData.name, email: formData.email })
+      if (formData.avatar && newUser) {
+        await api.users.uploadAvatar(newUser.id, formData.avatar)
+      }
+      // For now, navigate to dashboard
+      navigate('/dashboard')
+    } catch (error) {
+      console.error('Sign up failed:', error)
+    }
   }
 
   const handleSocialLogin = (provider: string) => {
@@ -95,6 +122,31 @@ const SignUp: React.FC = () => {
           alignItems: 'center',
         }}
       >
+        {/* Avatar Upload */}
+        <Box sx={{ position: 'relative', mb: 2 }}>
+          <Avatar
+            sx={{ width: 100, height: 100, bgcolor: 'rgba(255, 255, 255, 0.1)' }}
+            src={avatarPreview || undefined}
+          />
+          <IconButton
+            color="primary"
+            aria-label="upload picture"
+            component="label"
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              '&:hover': {
+                backgroundColor: 'rgba(0,0,0,0.7)',
+              },
+            }}
+          >
+            <input hidden accept="image/*" type="file" onChange={handleFileChange} />
+            <AddAPhoto sx={{ color: 'white' }} />
+          </IconButton>
+        </Box>
+
         {/* Logo */}
         <Box
           sx={{

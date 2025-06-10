@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
+import * as Yup from 'yup'
 import {
   Box,
   Typography,
@@ -15,58 +16,73 @@ import {
   CardContent,
   Chip,
   InputAdornment,
+  Paper,
+  useTheme,
+  CircularProgress,
+  Avatar,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
   AttachMoney,
   Save,
   ArrowBack,
+  Add,
+  UploadFile,
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
+import { useFormik } from 'formik'
+import { useCreateExpense, useUserGroups } from '../hooks/useApi'
+import api from '../services/api'
+
+const expenseSchema = Yup.object().shape({
+  description: Yup.string().required('Description is required'),
+  amount: Yup.number().positive('Amount must be positive').required('Amount is required'),
+  group_id: Yup.number().required('Group is required'),
+  notes: Yup.string(),
+  receipt: Yup.mixed().optional(),
+})
 
 const AddExpenseForm = () => {
   const navigate = useNavigate()
-  const [expenseData, setExpenseData] = useState({
-    description: '',
-    amount: '',
-    category: '',
-    date: new Date().toISOString().split('T')[0],
-    paidBy: '',
-    splitWith: [] as string[],
+  const [error, setError] = useState('')
+  const [selectedFileName, setSelectedFileName] = useState('')
+
+  const { createExpense, loading: isCreating } = useCreateExpense()
+  const { data: userGroups, loading: groupsLoading } = useUserGroups()
+
+  const formik = useFormik({
+    initialValues: {
+      description: '',
+      amount: '',
+      group_id: '',
+      receipt: null as File | null,
+      notes: '',
+    },
+    validationSchema: expenseSchema,
+    onSubmit: async (values) => {
+      setError('')
+      try {
+        const expensePayload = {
+          description: values.description,
+          amount: parseFloat(values.amount),
+          group_id: parseInt(values.group_id, 10),
+          paid_by_user_id: 1, // TODO: Replace with actual logged-in user ID
+          notes: values.notes,
+        }
+
+        const newExpense = await createExpense(expensePayload)
+
+        if (values.receipt && newExpense) {
+          await api.expenses.uploadReceipt(newExpense.id, values.receipt)
+        }
+        
+        navigate('/expenses')
+      } catch (err) {
+        setError('Failed to create expense. Please try again.')
+        console.error(err)
+      }
+    },
   })
-
-  const categories = ['Food', 'Travel', 'Entertainment', 'Utilities', 'Shopping', 'Health', 'Other']
-  const members = ['You', 'Elara', 'Orion', 'Company']
-
-  const handleInputChange = (field: string, value: string) => {
-    setExpenseData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleMemberToggle = (member: string) => {
-    setExpenseData(prev => ({
-      ...prev,
-      splitWith: prev.splitWith.includes(member)
-        ? prev.splitWith.filter(m => m !== member)
-        : [...prev.splitWith, member]
-    }))
-  }
-
-  const handleSaveExpense = () => {
-    // Validate form
-    if (!expenseData.description || !expenseData.amount || !expenseData.category) {
-      alert('Please fill in all required fields')
-      return
-    }
-    
-    // Save expense logic here
-    console.log('Saving expense:', expenseData)
-    
-    // Navigate to expenses page to see the added expense
-    navigate('/expenses')
-  }
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -137,121 +153,118 @@ const AddExpenseForm = () => {
 
         <Card>
           <CardContent sx={{ p: 4 }}>
-            {/* Expense Description */}
-            <TextField
-              fullWidth
-              label="Expense Description"
-              value={expenseData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              sx={{ mb: 3 }}
-              placeholder="e.g., Dinner at restaurant"
-              required
-            />
+            <form onSubmit={formik.handleSubmit}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {/* Expense Description */}
+                <TextField
+                  fullWidth
+                  id="description"
+                  name="description"
+                  label="Expense Description"
+                  value={formik.values.description}
+                  onChange={formik.handleChange}
+                  error={formik.touched.description && Boolean(formik.errors.description)}
+                  helperText={formik.touched.description && formik.errors.description}
+                />
 
-            {/* Amount */}
-            <TextField
-              fullWidth
-              label="Amount"
-              type="number"
-              value={expenseData.amount}
-              onChange={(e) => handleInputChange('amount', e.target.value)}
-              InputProps={{
-                startAdornment: <InputAdornment position="start">$</InputAdornment>,
-              }}
-              sx={{ mb: 3 }}
-              placeholder="0.00"
-              required
-            />
+                {/* Amount */}
+                <TextField
+                  fullWidth
+                  id="amount"
+                  name="amount"
+                  label="Amount"
+                  type="number"
+                  value={formik.values.amount}
+                  onChange={formik.handleChange}
+                  error={formik.touched.amount && Boolean(formik.errors.amount)}
+                  helperText={formik.touched.amount && formik.errors.amount}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
 
-            {/* Category */}
-            <FormControl fullWidth sx={{ mb: 3 }} required>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={expenseData.category}
-                label="Category"
-                onChange={(e) => handleInputChange('category', e.target.value)}
-              >
-                {categories.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                {/* Group */}
+                <TextField
+                  fullWidth
+                  select
+                  id="group_id"
+                  name="group_id"
+                  label="Group"
+                  value={formik.values.group_id}
+                  onChange={formik.handleChange}
+                  error={formik.touched.group_id && Boolean(formik.errors.group_id)}
+                  helperText={formik.touched.group_id && formik.errors.group_id}
+                  disabled={groupsLoading}
+                >
+                  {groupsLoading ? (
+                    <MenuItem value="">
+                      <CircularProgress size={20} />
+                    </MenuItem>
+                  ) : (
+                    userGroups?.map((group) => (
+                      <MenuItem key={group.id} value={group.id}>
+                        {group.name}
+                      </MenuItem>
+                    ))
+                  )}
+                </TextField>
 
-            {/* Date */}
-            <TextField
-              fullWidth
-              label="Date"
-              type="date"
-              value={expenseData.date}
-              onChange={(e) => handleInputChange('date', e.target.value)}
-              sx={{ mb: 3 }}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
+                {/* Receipt Upload */}
+                <Box>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    fullWidth
+                    startIcon={<UploadFile />}
+                  >
+                    Upload Receipt
+                    <input
+                      type="file"
+                      hidden
+                      onChange={(event) => {
+                        const file = event.currentTarget.files?.[0] || null
+                        formik.setFieldValue("receipt", file)
+                        setSelectedFileName(file ? file.name : '')
+                      }}
+                    />
+                  </Button>
+                  {selectedFileName && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      Selected: {selectedFileName}
+                    </Typography>
+                  )}
+                </Box>
 
-            {/* Paid By */}
-            <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel>Paid By</InputLabel>
-              <Select
-                value={expenseData.paidBy}
-                label="Paid By"
-                onChange={(e) => handleInputChange('paidBy', e.target.value)}
-              >
-                {members.map((member) => (
-                  <MenuItem key={member} value={member}>
-                    {member}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                {/* Notes */}
+                <TextField
+                  fullWidth
+                  id="notes"
+                  name="notes"
+                  label="Notes"
+                  multiline
+                  rows={3}
+                  value={formik.values.notes}
+                  onChange={formik.handleChange}
+                />
 
-            {/* Split With */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body1" sx={{ mb: 2, fontWeight: 500 }}>
-                Split with:
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {members.map((member) => (
-                  <Chip
-                    key={member}
-                    label={member}
-                    onClick={() => handleMemberToggle(member)}
-                    variant={expenseData.splitWith.includes(member) ? 'filled' : 'outlined'}
-                    sx={{
-                      bgcolor: expenseData.splitWith.includes(member) ? 'success.main' : 'transparent',
-                      color: expenseData.splitWith.includes(member) ? 'background.default' : 'text.primary',
-                      '&:hover': {
-                        bgcolor: expenseData.splitWith.includes(member) ? 'success.dark' : 'action.hover',
-                      }
-                    }}
-                  />
-                ))}
+                {error && (
+                  <Typography color="error" sx={{ mt: 2 }}>
+                    {error}
+                  </Typography>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  startIcon={<Save />}
+                  disabled={isCreating}
+                  sx={{ mt: 2 }}
+                >
+                  {isCreating ? <CircularProgress size={24} /> : 'Save Expense'}
+                </Button>
               </Box>
-            </Box>
-
-            {/* Save Button */}
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              startIcon={<Save />}
-              onClick={handleSaveExpense}
-              sx={{
-                bgcolor: 'success.main',
-                color: 'background.default',
-                fontWeight: 'bold',
-                py: 1.5,
-                fontSize: '1.1rem',
-                '&:hover': {
-                  bgcolor: 'success.dark',
-                },
-              }}
-            >
-              Save Expense
-            </Button>
+            </form>
           </CardContent>
         </Card>
       </Box>

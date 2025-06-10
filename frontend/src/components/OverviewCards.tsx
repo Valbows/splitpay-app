@@ -4,42 +4,81 @@ import {
   CardContent, 
   Typography, 
   Box, 
-  IconButton 
+  IconButton,
+  CircularProgress
 } from '@mui/material'
 import { MoreHoriz } from '@mui/icons-material'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
-interface CardData {
-  title: string
-  value: string
-  change: string
-  changeType: 'positive' | 'negative' | 'neutral'
+interface DashboardData {
+  totalBalance: number
+  activeGroups: number
+  pendingActions: number
+  settledPayments: number
 }
 
 const OverviewCards = () => {
-  const cardsData: CardData[] = [
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/dashboard`)
+        setData(response.data)
+      } catch (err) {
+        setError('Failed to fetch dashboard data')
+        console.error('Dashboard fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" align="center">
+        {error}
+      </Typography>
+    )
+  }
+
+  const cardsData = [
     {
       title: 'Total Balance',
-      value: '$1,200',
+      value: data ? `$${data.totalBalance.toFixed(2)}` : '$0.00',
       change: '+5%',
-      changeType: 'positive'
+      changeType: 'positive' as const
     },
     {
       title: 'Active Groups',
-      value: '4',
+      value: data?.activeGroups.toString() || '0',
       change: '0%',
-      changeType: 'neutral'
+      changeType: 'neutral' as const
     },
     {
       title: 'Pending Actions',
-      value: '3',
+      value: data?.pendingActions.toString() || '0',
       change: '-1%',
-      changeType: 'negative'
+      changeType: 'negative' as const
     },
     {
       title: 'Settled Payments',
-      value: '$800',
+      value: data ? `$${data.settledPayments.toFixed(2)}` : '$0.00',
       change: '+2%',
-      changeType: 'positive'
+      changeType: 'positive' as const
     }
   ]
 

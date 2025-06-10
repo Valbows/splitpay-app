@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from '../config/database';
+import upload from '../utils/upload';
 
 const router = express.Router();
 
@@ -57,6 +58,31 @@ router.post('/', async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error creating expense:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/expenses/:id/receipt - Upload expense receipt
+router.post('/:id/receipt', upload.single('receipt'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded.' });
+    }
+    const receiptUrl = `/uploads/${req.file.filename}`;
+
+    const result = await pool.query(
+      'UPDATE expenses SET receipt_url = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [receiptUrl, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Expense not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error uploading receipt:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

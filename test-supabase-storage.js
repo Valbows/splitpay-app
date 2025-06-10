@@ -5,25 +5,14 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') }); // Assuming .env is in the root
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_API_KEY; // Use the Anon key for client initialization
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use the Service Role key for admin access
 
 // Initialize Supabase client
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// --- Replace with the actual access token obtained from login ---
-const ACCESS_TOKEN = 'YOUR_ACTUAL_ACCESS_TOKEN_HERE';
-// -----------------------------------------------------------------
-
-// Set the access token on the client
-supabase.auth.setSession({
-    access_token: ACCESS_TOKEN,
-    refresh_token: 'dummy_refresh_token' // Refresh token is required by the type definition, but value might not matter for this test
-});
-
-
 async function testStorageAccess() {
   try {
-    console.log('Attempting to list files in receipt-images bucket...');
+    console.log('Attempting to list files in receipt-images bucket using Service Role Key...');
 
     // Attempt to list files in the bucket
     const { data, error } = await supabase.storage
@@ -32,8 +21,12 @@ async function testStorageAccess() {
 
     if (error) {
       console.error('Error listing files:', error);
+      if (error.message.includes('Bucket not found')) {
+        console.log('Hint: The "receipt-images" bucket may not exist in your Supabase project. Please create it in your Supabase dashboard under Storage.');
+      }
     } else {
-      console.log('Successfully listed files:', data);
+      console.log('✅ Success! Connection to Supabase is working.');
+      console.log('Files in bucket:', data.length > 0 ? data : 'Bucket is empty.');
     }
 
   } catch (error) {
