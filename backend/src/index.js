@@ -20,7 +20,7 @@ app.use(express.json());
 
 // Supabase Client
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_API_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Google Gemini Client
@@ -109,7 +109,6 @@ app.put('/groups/:id', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
-
 
 app.delete('/groups/:id', async (req, res) => {
   const { id } = req.params;
@@ -242,26 +241,39 @@ app.delete('/groups/:id/participants/:user_id', async (req, res) => {
 // Receipt Processing Endpoint
 app.post('/receipts/upload', upload.single('receiptImage'), async (req, res) => {
   try {
+    console.log('Received upload request.');
+    console.log('req.file:', req.file);
+
     if (!req.file) {
+      console.error('No file uploaded after multer processing.');
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const file = req.file;
+    console.log('File details:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    });
+
     const fileName = `${Date.now()}-${file.originalname}`;
     const filePath = `receipts/${fileName}`; // Define a path in your Supabase Storage bucket
 
     // Step 1: Store Image
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('receipts') // Replace 'receipts' with your Supabase Storage bucket name
+      .from('receipt-images') // Replace 'receipts' with your Supabase Storage bucket name
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
       });
+
+    console.log('Supabase upload data:', uploadData);
+    console.log('Supabase upload error:', uploadError);
 
     if (uploadError) throw uploadError;
 
     // Get the public URL of the uploaded image
     const { data: publicUrlData } = supabase.storage
-      .from('receipts') // Replace 'receipts' with your Supabase Storage bucket name
+      .from('receipt-images') // Replace 'receipts' with your Supabase Storage bucket name
       .getPublicUrl(filePath);
 
     const imageUrl = publicUrlData.publicUrl;
