@@ -10,17 +10,18 @@ This document details the API endpoints implemented in the SplitPay APP backend,
 *   **Method:** `POST`
 *   **Request Body:**
     ```json
-    {
-      "email": "user@example.com",
-      "password": "securepassword"
-    }
-    ```
-*   **Response Body (Success 201):**
-    ```json
-    {
-      "user": { ... }, // Supabase user object
-      "session": { ... } // Supabase session object
-    }
+    [
+      {
+        "id": 123456, // Integer ID
+        "group_id": 111111, // Integer ID
+        "description": "Updated Expense",
+        "amount": 60.00,
+        "paid_by_user_id": 789012, // Integer ID
+        "date": "YYYY-MM-DD",
+        "raw_text": "Updated raw text",
+        "created_at": "timestamp"
+      }
+    ]
     ```
 *   **Response Body (Error 400):**
     ```json
@@ -54,6 +55,38 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     }
     ```
 
+## User Endpoints
+
+### `GET /api/users/me`
+
+*   **Purpose:** Retrieve the authenticated user's profile and group memberships.
+*   **Method:** `GET`
+*   **Request Parameters:** None
+*   **Response Body (Success 200):**
+    ```json
+    {
+      "id": 123456, // Integer ID
+      "name": "User Name",
+      "email": "user@example.com",
+      "avatar_url": "url_to_avatar",
+      "created_at": "timestamp",
+      "updated_at": "timestamp",
+      "groups": [111111, 222222] // Array of group integer IDs
+    }
+    ```
+*   **Response Body (Error 401):**
+    ```json
+    {
+      "error": "Unauthorized"
+    }
+    ```
+*   **Response Body (Error 500):**
+    ```json
+    {
+      "error": "Internal server error"
+    }
+    ```
+
 ## Groups Endpoints
 
 ### `GET /groups`
@@ -65,7 +98,7 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```json
     [
       {
-        "id": "uuid",
+        "id": 123456, // Integer ID
         "name": "Group Name",
         "created_at": "timestamp"
         // potentially other fields
@@ -93,7 +126,7 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```json
     [
       {
-        "id": "uuid",
+        "id": 123456, // Integer ID
         "name": "New Group Name",
         "created_at": "timestamp"
         // potentially other fields
@@ -122,7 +155,7 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```json
     [
       {
-        "id": "uuid",
+        "id": 123456, // Integer ID
         "name": "Updated Group Name",
         "created_at": "timestamp"
         // potentially other fields
@@ -146,7 +179,7 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```json
     [
       {
-        "id": "uuid",
+        "id": 123456, // Integer ID
         "name": "Deleted Group Name",
         "created_at": "timestamp"
         // potentially other fields
@@ -171,11 +204,11 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```json
     [
       {
-        "id": "uuid",
-        "group_id": "uuid",
+        "id": 123456, // Integer ID
+        "group_id": 111111, // Integer ID
         "description": "Expense Description",
         "amount": 100.00,
-        "paid_by_user_id": "uuid",
+        "paid_by_user_id": 789012, // Integer ID
         "date": "YYYY-MM-DD",
         "raw_text": "Optional raw text from receipt",
         "created_at": "timestamp"
@@ -273,11 +306,11 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```json
     [
       {
-        "id": "uuid",
-        "group_id": "uuid",
+        "id": 123456, // Integer ID
+        "group_id": 111111, // Integer ID
         "description": "Deleted Expense",
         "amount": 60.00,
-        "paid_by_user_id": "uuid",
+        "paid_by_user_id": 789012, // Integer ID
         "date": "YYYY-MM-DD",
         "raw_text": "Deleted raw text",
         "created_at": "timestamp"
@@ -303,9 +336,9 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```json
     [
       {
-        "id": "uuid",
-        "group_id": "uuid",
-        "user_id": "uuid",
+        "id": 123456, // Integer ID
+        "group_id": 111111, // Integer ID
+        "user_id": 789012, // Integer ID
         "created_at": "timestamp",
         "users": { // Joined from 'users' table
           "email": "participant@example.com"
@@ -334,9 +367,9 @@ This document details the API endpoints implemented in the SplitPay APP backend,
 *   **Response Body (Success 201):**
     ```json
     {
-      "id": "uuid",
-        "group_id": "uuid",
-        "user_id": "uuid",
+      "id": 123456, // Integer ID
+        "group_id": 111111, // Integer ID
+        "user_id": 789012, // Integer ID
         "created_at": "timestamp"
       }
     ]
@@ -358,9 +391,9 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ```json
     [
       {
-        "id": "uuid",
-        "group_id": "uuid",
-        "user_id": "uuid",
+        "id": 123456, // Integer ID
+        "group_id": 111111, // Integer ID
+        "user_id": 789012, // Integer ID
         "created_at": "timestamp"
       }
     ]
@@ -384,11 +417,11 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     {
       "message": "Receipt uploaded and processed",
       "expense": {
-        "id": "uuid",
-        "group_id": "uuid", // Placeholder - needs to be determined
+        "id": 123456, // Integer ID
+        "group_id": 111111, // Integer ID - Placeholder - needs to be determined
         "description": "Parsed Merchant Name or Unknown Merchant",
         "amount": 0.00, // Parsed amount or 0
-        "paid_by_user_id": "uuid", // Placeholder - needs to be determined
+        "paid_by_user_id": 789012, // Integer ID - Placeholder - needs to be determined
         "date": "YYYY-MM-DD", // Parsed date or today's date
         "raw_text": "Full raw text from Gemini",
         "image_url": "Public URL of the uploaded image",

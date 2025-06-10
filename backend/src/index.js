@@ -9,6 +9,12 @@ const { createClient } = require('@supabase/supabase-js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const multer = require('multer');
 const { parseReceiptText } = require('./utils/receiptParser');
+const {
+  transformUserToFrontendFormat,
+  transformGroupToFrontendFormat,
+  transformParticipantToMemberFormat,
+  transformExpenseToFrontendFormat
+} = require('./utils/transformers');
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() }); // Use memory storage for direct processing
@@ -71,7 +77,8 @@ app.get('/groups', async (req, res) => {
       .from('groups')
       .select('*');
     if (error) throw error;
-    res.status(200).json(data);
+    const transformedData = data.map(transformGroupToFrontendFormat);
+    res.status(200).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -87,7 +94,8 @@ app.post('/groups', async (req, res) => {
       .insert([{ name }]) // Will add created_by_user_id later
       .select();
     if (error) throw error;
-    res.status(201).json(data);
+    const transformedData = data.map(transformGroupToFrontendFormat);
+    res.status(201).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -104,7 +112,8 @@ app.put('/groups/:id', async (req, res) => {
       .eq('id', id)
       .select();
     if (error) throw error;
-    res.status(200).json(data);
+    const transformedData = data.map(transformGroupToFrontendFormat);
+    res.status(200).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -119,7 +128,8 @@ app.delete('/groups/:id', async (req, res) => {
       .eq('id', id)
       .select();
     if (error) throw error;
-    res.status(200).json(data);
+    const transformedData = data.map(transformGroupToFrontendFormat);
+    res.status(200).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -139,7 +149,8 @@ app.get('/expenses', async (req, res) => {
       .select('*')
       .eq('group_id', group_id);
     if (error) throw error;
-    res.status(200).json(data);
+    const transformedData = data.map(transformExpenseToFrontendFormat);
+    res.status(200).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -153,7 +164,8 @@ app.post('/expenses', async (req, res) => {
       .insert([{ group_id, description, amount, paid_by_user_id, date, raw_text }])
       .select();
     if (error) throw error;
-    res.status(201).json(data);
+    const transformedData = data.map(transformExpenseToFrontendFormat);
+    res.status(201).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -169,7 +181,8 @@ app.put('/expenses/:id', async (req, res) => {
       .eq('id', id)
       .select();
     if (error) throw error;
-    res.status(200).json(data);
+    const transformedData = data.map(transformExpenseToFrontendFormat);
+    res.status(200).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -184,7 +197,8 @@ app.delete('/expenses/:id', async (req, res) => {
       .eq('id', id)
       .select();
     if (error) throw error;
-    res.status(200).json(data);
+    const transformedData = data.map(transformExpenseToFrontendFormat);
+    res.status(200).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -200,7 +214,8 @@ app.get('/groups/:id/participants', async (req, res) => {
       .select('*, users(email)') // Assuming a 'users' table with email
       .eq('group_id', id);
     if (error) throw error;
-    res.status(200).json(data);
+    const transformedData = data.map(transformParticipantToMemberFormat);
+    res.status(200).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -215,7 +230,8 @@ app.post('/groups/:id/participants', async (req, res) => {
       .insert([{ group_id: id, user_id }])
       .select();
     if (error) throw error;
-    res.status(201).json(data);
+    const transformedData = data.map(transformParticipantToMemberFormat);
+    res.status(201).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -231,9 +247,44 @@ app.delete('/groups/:id/participants/:user_id', async (req, res) => {
       .eq('user_id', user_id)
       .select();
     if (error) throw error;
-    res.status(200).json(data);
+    const transformedData = data.map(transformParticipantToMemberFormat);
+    res.status(200).json(transformedData);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+
+// User Profile Endpoint
+app.get('/api/users/me', async (req, res) => {
+  try {
+    // Get user from request context (set by auth middleware)
+    // NOTE: Assumes an auth middleware exists and sets req.user
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Transform user to frontend format
+    const transformedUser = transformUserToFrontendFormat(user);
+
+    // Fetch additional user data like group memberships if needed
+    // NOTE: Assumes 'participants' table has 'user_id' and 'group_id' columns
+    const { data: memberships, error: membershipsError } = await supabase
+      .from('participants')
+      .select('group_id')
+      .eq('user_id', user.id);
+
+    if (membershipsError) throw membershipsError;
+
+    // Attach transformed memberships (list of group integer IDs)
+    transformedUser.groups = memberships ?
+      memberships.map(m => uuidToIntegerId(m.group_id)) : [];
+
+    res.json(transformedUser);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -318,9 +369,11 @@ app.post('/receipts/upload', upload.single('receiptImage'), async (req, res) => 
 
     if (expenseError) throw expenseError;
 
+    const transformedExpense = transformExpenseToFrontendFormat(expenseData[0]);
+
     res.status(200).json({
       message: 'Receipt uploaded and processed',
-      expense: expenseData[0], // Return the created expense data
+      expense: transformedExpense, // Return the created expense data
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -4,7 +4,8 @@ This document provides a concise overview of the SplitPay APP project structure 
 
 ## Key Components and Their Interactions
 
-*   **Backend (Node.js/Express.js):** Located in the `src/` directory. This is the API layer that will handle requests from the frontend, interact with the database, and integrate with external services like the Google Gemini API.
+*   **Backend (Node.js/Express.js):** Located in the `src/` directory. This is the API layer that will handle requests from the frontend, interact with the database, and integrate with external services like the Google Gemini API. It now includes a data transformation layer to format data for the frontend.
+*   **Data Transformation Layer:** A new utility file (`src/utils/transformers.js`) has been added to handle the conversion of UUIDs to integer IDs and transform data objects to the frontend's expected format.
 *   **Database (PostgreSQL via Supabase):** Managed externally through Supabase. The backend interacts with the database using the `@supabase/supabase-js` client library.
 *   **Environment Variables:** Managed using `dotenv` and stored in the `.env` file in the project root. These are used to configure connections to Supabase and the Google Gemini API.
 
@@ -30,6 +31,9 @@ This document provides a concise overview of the SplitPay APP project structure 
 *   Created `src/index.js` with basic Express server setup, dotenv configuration, and client initializations for Supabase and Google AI.
 *   Renamed `.env.local` to `.env` and updated `dotenv` configuration in `src/index.js` to load variables correctly.
 *   Added a `start` script to `package.json` to run the backend server.
+*   Created `backend/src/utils/transformers.js` to handle data transformation between UUIDs and integer IDs for frontend compatibility.
+*   Modified existing API endpoints in `backend/src/index.js` to use the transformation functions from `transformers.js`.
+*   Implemented a new endpoint `GET /api/users/me` in `backend/src/index.js` to retrieve user profile and group memberships in the frontend format.
 
 ## User Feedback Integration and Its Impact on Development
 
