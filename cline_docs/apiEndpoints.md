@@ -1,4 +1,4 @@
-# API Endpoints: SplitPay APP Backend
+          # API Endpoints: SplitPay APP Backend
 
 This document details the API endpoints implemented in the SplitPay APP backend, aligning with the project's documentation requirements.
 
@@ -367,6 +367,38 @@ This document details the API endpoints implemented in the SplitPay APP backend,
     ]
     ```
 *   **Response Body (Error 400):**
+    ```json
+    {
+      "error": "Error message"
+    }
+    ```
+
+## Receipt Processing Endpoints
+
+### `POST /receipts/upload`
+
+*   **Purpose:** Upload a receipt image, extract text using AI, parse details, and create a preliminary expense entry.
+*   **Method:** `POST`
+*   **Request Body:** `multipart/form-data` with a field named `receiptImage` containing the image file.
+*   **Response Body (Success 200):**
+    ```json
+    {
+      "message": "Receipt uploaded and processed",
+      "expense": {
+        "id": "uuid",
+        "group_id": "uuid", // Placeholder - needs to be determined
+        "description": "Parsed Merchant Name or Unknown Merchant",
+        "amount": 0.00, // Parsed amount or 0
+        "paid_by_user_id": "uuid", // Placeholder - needs to be determined
+        "date": "YYYY-MM-DD", // Parsed date or today's date
+        "raw_text": "Full raw text from Gemini",
+        "image_url": "Public URL of the uploaded image",
+        "is_ai_generated": true,
+        "created_at": "timestamp"
+      }
+    }
+    ```
+*   **Response Body (Error 400/500):**
     ```json
     {
       "error": "Error message"

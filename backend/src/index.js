@@ -7,8 +7,11 @@ const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const multer = require('multer');
+const { parseReceiptText } = require('./utils/receiptParser');
 
 const app = express();
+const upload = multer({ storage: multer.memoryStorage() }); // Use memory storage for direct processing
 const port = process.env.PORT || 3001; // Use port 3001 for backend
 
 // Middleware
@@ -232,6 +235,83 @@ app.delete('/groups/:id/participants/:user_id', async (req, res) => {
     res.status(200).json(data);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+
+// Receipt Processing Endpoint
+app.post('/receipts/upload', upload.single('receiptImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const file = req.file;
+    const fileName = `${Date.now()}-${file.originalname}`;
+    const filePath = `receipts/${fileName}`; // Define a path in your Supabase Storage bucket
+
+    // Step 1: Store Image
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('receipts') // Replace 'receipts' with your Supabase Storage bucket name
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+      });
+
+    if (uploadError) throw uploadError;
+
+    // Get the public URL of the uploaded image
+    const { data: publicUrlData } = supabase.storage
+      .from('receipts') // Replace 'receipts' with your Supabase Storage bucket name
+      .getPublicUrl(filePath);
+
+    const imageUrl = publicUrlData.publicUrl;
+
+    // Step 2: Extract Text with Gemini
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }); // Use the correct model name
+
+    const result = await model.generateContent([
+      "Extract all text from this receipt image, including line items, prices, totals, merchant name, and date. Provide the raw text output.",
+      {
+        inlineData: {
+          mimeType: file.mimetype,
+          data: file.buffer.toString('base64') // Pass image data as base64
+        },
+      },
+    ]);
+
+    const geminiResponse = result.response;
+    const rawText = geminiResponse.text();
+
+    // Step 3: Parse Text & Store in Database
+    const parsedDetails = parseReceiptText(rawText);
+
+    // Assuming group_id and paid_by_user_id are available from the request or user session
+    // For now, using placeholders - these need to be determined based on frontend data
+    const group_id = 'placeholder_group_id';
+    const paid_by_user_id = 'placeholder_user_id';
+
+    const { data: expenseData, error: expenseError } = await supabase
+      .from('expenses')
+      .insert([{
+        group_id: group_id,
+        description: parsedDetails.merchant || 'Unknown Merchant', // Use parsed merchant or a default
+        amount: parsedDetails.amount || 0, // Use parsed amount or a default
+        paid_by_user_id: paid_by_user_id,
+        date: parsedDetails.date || new Date().toISOString().split('T')[0], // Use parsed date or today's date
+        raw_text: rawText,
+        image_url: imageUrl, // Store the image URL
+        is_ai_generated: true, // Mark as AI generated
+      }])
+      .select();
+
+    if (expenseError) throw expenseError;
+
+    res.status(200).json({
+      message: 'Receipt uploaded and processed',
+      expense: expenseData[0], // Return the created expense data
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
