@@ -29,6 +29,213 @@ app.get('/', (req, res) => {
   res.send('SplitPay Backend is running!');
 });
 
+// Authentication Endpoints
+app.post('/auth/signup', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(401).json({ error: error.message });
+  }
+});
+
+
+// Groups Endpoints
+app.get('/groups', async (req, res) => {
+  try {
+    // Assuming user is authenticated and user id is available in req.user or similar
+    // For now, let's fetch all groups (will refine with user association later)
+    const { data, error } = await supabase
+      .from('groups')
+      .select('*');
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+app.post('/groups', async (req, res) => {
+  const { name } = req.body;
+  try {
+    // Assuming user is authenticated and user id is available
+    const { data, error } = await supabase
+      .from('groups')
+      .insert([{ name }]) // Will add created_by_user_id later
+      .select();
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+app.put('/groups/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+  try {
+    const { data, error } = await supabase
+      .from('groups')
+      .update({ name })
+      .eq('id', id)
+      .select();
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+app.delete('/groups/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { data, error } = await supabase
+      .from('groups')
+      .delete()
+      .eq('id', id)
+      .select();
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+// Expenses Endpoints
+app.get('/expenses', async (req, res) => {
+  try {
+    // Assuming group_id is provided as a query parameter
+    const { group_id } = req.query;
+    if (!group_id) {
+      return res.status(400).json({ error: 'group_id is required' });
+    }
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .eq('group_id', group_id);
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/expenses', async (req, res) => {
+  const { group_id, description, amount, paid_by_user_id, date, raw_text } = req.body;
+  try {
+    const { data, error } = await supabase
+      .from('expenses')
+      .insert([{ group_id, description, amount, paid_by_user_id, date, raw_text }])
+      .select();
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/expenses/:id', async (req, res) => {
+  const { id } = req.params;
+  const { description, amount, paid_by_user_id, date, raw_text } = req.body;
+  try {
+    const { data, error } = await supabase
+      .from('expenses')
+      .update({ description, amount, paid_by_user_id, date, raw_text })
+      .eq('id', id)
+      .select();
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/expenses/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { data, error } = await supabase
+      .from('expenses')
+      .delete()
+      .eq('id', id)
+      .select();
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+// Participants Endpoints
+app.get('/groups/:id/participants', async (req, res) => {
+  const { id } = req.params; // group_id
+  try {
+    const { data, error } = await supabase
+      .from('participants')
+      .select('*, users(email)') // Assuming a 'users' table with email
+      .eq('group_id', id);
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/groups/:id/participants', async (req, res) => {
+  const { id } = req.params; // group_id
+  const { user_id } = req.body; // user_id to add
+  try {
+    const { data, error } = await supabase
+      .from('participants')
+      .insert([{ group_id: id, user_id }])
+      .select();
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/groups/:id/participants/:user_id', async (req, res) => {
+  const { id, user_id } = req.params; // group_id, user_id to remove
+  try {
+    const { data, error } = await supabase
+      .from('participants')
+      .delete()
+      .eq('group_id', id)
+      .eq('user_id', user_id)
+      .select();
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
 // Start the server
 app.listen(port, () => {
   console.log(`SplitPay Backend listening at http://localhost:${port}`);
