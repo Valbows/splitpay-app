@@ -1,0 +1,8 @@
+{
+  "group_id": "e157c5c4-6f8f-491d-939f-a6ffa83c890f",
+  "description": "Groceries",
+  "amount": 55.75,
+  "paid_by_user_id": "c8d8f71d-1f0c-47f4-9a68-33f632b8e435",
+  "date": "2025-06-10",
+  "raw_text": "Sample receipt text for groceries"
+}

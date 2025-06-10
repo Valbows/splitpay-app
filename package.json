@@ -4,6 +4,7 @@
   "description": "A modern expense splitting application that makes it easy to manage shared expenses and settle up with friends.",
   "main": "index.js",
   "scripts": {
+    "start": "node backend/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -13,8 +14,17 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/Valbows/splitpay-app/issues"
   },
-  "homepage": "https://github.com/Valbows/splitpay-app#readme"
+  "homepage": "https://github.com/Valbows/splitpay-app#readme",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.50.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "multer": "^2.0.1"
+  }
 }
