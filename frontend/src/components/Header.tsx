@@ -55,6 +55,20 @@ const Header = () => {
           >
             Add Expense
           </Button>
+          <Button
+            variant="outlined"
+            onClick={() => navigate('/signin')}
+            sx={{
+              borderColor: '#FFD700',
+              color: '#FFD700',
+              '&:hover': {
+                borderColor: '#FFC700',
+                backgroundColor: 'rgba(255, 215, 0, 0.1)',
+              },
+            }}
+          >
+            Sign In
+          </Button>
           <IconButton color="inherit">
             <Search />
           </IconButton>
