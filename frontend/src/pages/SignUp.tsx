@@ -98,7 +98,7 @@ const SignUp: React.FC = () => {
         {/* Logo */}
         <Box
           sx={{
-            backgroundColor: '#FFD700',
+            backgroundColor: '#00ff88',
             color: '#000',
             padding: '16px 32px',
             borderRadius: 2,
@@ -167,7 +167,7 @@ const SignUp: React.FC = () => {
                     borderColor: 'rgba(255, 255, 255, 0.3)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#FFD700',
+                    borderColor: '#00ff88',
                   },
                 },
                 '& .MuiOutlinedInput-input': {
@@ -211,7 +211,7 @@ const SignUp: React.FC = () => {
                     borderColor: 'rgba(255, 255, 255, 0.3)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#FFD700',
+                    borderColor: '#00ff88',
                   },
                 },
                 '& .MuiOutlinedInput-input': {
@@ -268,7 +268,7 @@ const SignUp: React.FC = () => {
                     borderColor: 'rgba(255, 255, 255, 0.3)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#FFD700',
+                    borderColor: '#00ff88',
                   },
                 },
                 '& .MuiOutlinedInput-input': {
@@ -325,7 +325,7 @@ const SignUp: React.FC = () => {
                     borderColor: 'rgba(255, 255, 255, 0.3)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#FFD700',
+                    borderColor: '#00ff88',
                   },
                 },
                 '& .MuiOutlinedInput-input': {
@@ -346,7 +346,7 @@ const SignUp: React.FC = () => {
             variant="contained"
             size="large"
             sx={{
-              backgroundColor: '#FFD700',
+              backgroundColor: '#00ff88',
               color: '#000',
               fontWeight: 'bold',
               fontSize: '16px',
@@ -429,7 +429,7 @@ const SignUp: React.FC = () => {
               type="button"
               onClick={() => navigate('/signin')}
               sx={{
-                color: '#FFD700',
+                color: '#00ff88',
                 fontWeight: 'bold',
                 textDecoration: 'none',
                 textTransform: 'uppercase',
